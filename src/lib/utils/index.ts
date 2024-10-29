@@ -1,5 +1,5 @@
-// import { SWID, ESPN_S2, OWNER_DICT, ANTHROPIC_API_KEY,  OVERALL_SUMMARY_PROMPT, MATCHUP_SUMMARY_PROMPT  } from '$root/config.json'; // use for local, no web deployment
-import {
+import { SWID, ESPN_S2, OWNER_DICT, ANTHROPIC_API_KEY,  OVERALL_SUMMARY_PROMPT, MATCHUP_SUMMARY_PROMPT  } from '$root/config.json'; // use for local, no web deployment
+/* import {
 	SWID,
 	ESPN_S2,
 	OWNER_DICT,
@@ -7,11 +7,13 @@ import {
 	OVERALL_SUMMARY_PROMPT,
 	MATCHUP_SUMMARY_PROMPT
 } from '$env/static/private'; // using envs for web deployment
+*/
 
 import fetch from 'node-fetch';
 
-const OWNER_DICT_PARSED = JSON.parse(OWNER_DICT || '{}');
+const OWNER_DICT_PARSED = typeof OWNER_DICT === 'string' ? JSON.parse(OWNER_DICT) : OWNER_DICT;
 
+// Rest of the file remains unchanged
 interface Headers {
 	[key: string]: string;
 }
@@ -406,11 +408,13 @@ async function runEspnWeekly(
 	maxAttempts: number = 1
 ): Promise<any> {
 	year = year || getNFLSeason();
+	console.log('Current year', year);
+
 	const espnCookies: Cookies = {
 		swid: SWID,
 		espn_s2: ESPN_S2
 	};
-	const leagueId = '39720439';
+	const leagueId = '1615041040';
 
 	let attempts = 0;
 	let leagueData: LeagueData,
@@ -419,9 +423,12 @@ async function runEspnWeekly(
 		scheduleDf: any[],
 		matchupDf: any[];
 
+	console.log("Cookies", espnCookies);
+
 	while (attempts < maxAttempts) {
 		try {
 			leagueData = await loadLeague(leagueId, espnCookies, year);
+			console.log(leagueData);
 			standingsDf = loadRecords(leagueData);
 
 			week = week || leagueData.scoringPeriodId - 1;
@@ -536,7 +543,7 @@ async function getClaudeSummary(prompt: string, systemMessage: string): Promise<
 			'anthropic-version': '2023-06-01'
 		},
 		body: JSON.stringify({
-			model: 'claude-3-sonnet-20240229',
+			model: 'claude-3-5-sonnet-20241022',
 			system: systemMessage,
 			messages: [{ role: 'user', content: prompt }],
 			max_tokens: 500
